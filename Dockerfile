@@ -1,10 +1,12 @@
 FROM php:8.1-apache
 
-# Disable other MPMs, enable prefork (PHP compatible)
-RUN a2dismod mpm_event mpm_worker || true \
-    && a2enmod mpm_prefork rewrite
+# Disable ALL MPM modules explicitly
+RUN a2dismod mpm_event mpm_worker mpm_prefork || true
 
-# Install mysqli extension (THIS IS THE KEY FIX)
+# Enable ONLY prefork (required for PHP)
+RUN a2enmod mpm_prefork rewrite
+
+# Install mysqli extension
 RUN docker-php-ext-install mysqli
 
 # Copy project files
