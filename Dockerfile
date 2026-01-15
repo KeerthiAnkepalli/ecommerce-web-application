@@ -1,14 +1,10 @@
 FROM php:8.1-apache
 
-# Enable Apache rewrite
-RUN a2enmod rewrite
+# Disable all MPM modules first
+RUN a2dismod mpm_event mpm_worker || true
 
-# Set Apache Document Root
-ENV APACHE_DOCUMENT_ROOT=/var/www/html
-
-RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/*.conf \
-    /etc/apache2/apache2.conf
+# Enable prefork (required for PHP)
+RUN a2enmod mpm_prefork rewrite
 
 # Copy project files
 COPY . /var/www/html/
@@ -17,3 +13,6 @@ COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
+
+# Keep Apache running
+CMD ["apache2-foreground"]
